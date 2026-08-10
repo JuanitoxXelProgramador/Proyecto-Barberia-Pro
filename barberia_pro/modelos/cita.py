@@ -1,9 +1,9 @@
 from datetime import datetime
-from  cliente import Cliente
-from barbero import Barbero
-from servicio import Servicio
-from sucursal import Sucursal
-from estado_cita import EstadoCita
+from modelos.cliente import Cliente
+from modelos.barbero import Barbero
+from modelos.servicio import Servicio
+from modelos.sucursal import Sucursal
+from modelos.estado_cita import EstadoCita
 
 class Cita:
     id_contador = 0

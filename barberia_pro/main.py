@@ -1,21 +1,3 @@
-print("Hola Mundo")
+from servicios.gestor_citas import GestorCitas
+from datetime import datetime, timedelta
 
-# barberia_pro/
-# │
-# ├── main.py
-# │
-# ├── modelos/
-# │
-# ├── servicios/
-# │
-# ├── repositorios/
-# │
-# ├── interfaz/
-# │
-# ├── utilidades/
-# │
-# ├── tests/
-# │
-# ├── README.md
-# │
-# └── .gitignore

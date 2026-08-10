@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 class Servicio:
     _contador_id = 0
 
@@ -17,7 +19,10 @@ class Servicio:
         #validando fecha
         self.estado = estado
 
-    #falta hacer los getters y setters 
+    # --- Properties y setters ---
+    @property
+    def duracion_timedelta(self):
+         return timedelta(minutes=self.duracion)
 
     def _validar_parametros(self, **kwargs):
             for nombre, valor in kwargs.items():
