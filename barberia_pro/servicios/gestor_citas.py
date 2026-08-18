@@ -6,6 +6,11 @@ from modelos.sucursal import Sucursal
 from modelos.cita import Cita
 from modelos.estado_cita import EstadoCita
 
+#reglas definidas
+#Los horarios son inmutables. Si necesitamos una configuración diferente, se crea un nuevo horario y se asigna al barbero.
+#La sucursal define qué horarios existen y los barberos de esa sucursal pueden ser asignados a ellos.
+
+
 class GestorCitas:
 
     def __init__(self):
@@ -38,14 +43,14 @@ class GestorCitas:
 
         return cita
     
-    def _obtener_fin_cita(self,fecha_cita, servicio_cita):
-        return fecha_cita + servicio_cita
+    def _obtener_fin_cita(self,fecha_cita: datetime, duracion: timedelta):
+        return fecha_cita + duracion
 
     def _hay_conflicto_horario(self, barbero,fecha,servicio):
         #recorremos las citas agregadas
         for cita_existente in self._citas.values():
 
-            if barbero == cita_existente.barbero:
+            if barbero == cita_existente.barbero and cita_existente.estado != EstadoCita.CANCELADA:
                 #comprobamos los intervalos
                 if self._intervalos_superpuestos(cita_existente,fecha,servicio):
                     return True
@@ -80,11 +85,11 @@ class GestorCitas:
 
         ]
 
-        for parametro, instacia, nombre in validaciones:
+        for parametro, instancia, nombre in validaciones:
             if parametro is None:
                 raise ValueError(f"El parámetro '{nombre}' no puede estar vacío.")
-            if not isinstance(parametro, instacia):
-                raise TypeError(f"El parámetro '{nombre}' debe ser de tipo {instacia.__name__}.")
+            if not isinstance(parametro, instancia):
+                raise TypeError(f"El parámetro '{nombre}' debe ser de tipo {instancia.__name__}.")
         
 #     Agregar ID automático a Cita.
 # Implementar crear_cita() en GestorCitas.
