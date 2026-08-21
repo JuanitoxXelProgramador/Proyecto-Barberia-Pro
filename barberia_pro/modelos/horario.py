@@ -1,12 +1,16 @@
-from periodo_horario import PeriodoHorario
-from dias_semana import DiasSemana
+from modelos.dias_semana import DiasSemana
+from modelos.periodo_horario import PeriodoHorario
 from datetime import time
 
 class Horario:
 
     def __init__(self):
-        self.periodos = {}
+        self._periodos = {}
 
+    @property
+    def periodos(self):
+        return self._periodos
+    
     def agregar_periodo(self,dia: DiasSemana,periodo: PeriodoHorario):
         #validando los parametros
         self._validar_parametros(dia,periodo)
@@ -68,22 +72,3 @@ class Horario:
             if not isinstance(parametro,instancia):
                 raise TypeError(f"El parámetro '{nombre}' debe ser de tipo {instancia.__name__}.")
 
-p1 = PeriodoHorario(time(8,0),time(12,0))
-p2 = PeriodoHorario(time(12,1),time(18,0))
-p3 = PeriodoHorario(time(13,0),time(18,0))
-p4 = PeriodoHorario(time(15,0),time(19,0))
-p5 = PeriodoHorario(time(1,0),time(7,0))
-p6 = PeriodoHorario(time(11,0),time(18,0))
-p7 = PeriodoHorario(time(22,0),time(23,0))
-
-h1 = Horario()
-h1.agregar_periodo(DiasSemana.LUNES, p1)
-h1.agregar_periodo(DiasSemana.LUNES, p2)
-h1.agregar_periodo(DiasSemana.LUNES,p7)
-# h1.agregar_periodo(DiasSemana.MARTES, p3)
-# h1.agregar_periodo(DiasSemana.MIERCOLES, p4)
-# h1.agregar_periodo(DiasSemana.JUEVES, p5)
-# h1.agregar_periodo(DiasSemana.VIERNES, p6)
-# h1.agregar_periodo(DiasSemana.SABADO, p7)
-
-h1.mostrar_horario()
