@@ -5,18 +5,19 @@ from modelos.periodo_horario import PeriodoHorario
 
 class Sucursal:
 
-    def __init__(self,nombre: str, direccion: str, telefono: str, hora_apertura: time, hora_cierre: time, duracion_minima_periodo: timedelta, descanso_minimo: timedelta):
+    def __init__(self,nombre: str, direccion: str, telefono: str, hora_apertura: time, hora_cierre: time, duracion_minima_periodo: timedelta, descanso_minimo: timedelta,max_periodos_diarios: int):
         #asignando parametros informativos de la surcursal
         self._nombre = nombre
         self._direccion = direccion
         self._telefono = telefono
         #validamos parametros
-        self._validar_parametros(hora_apertura, hora_cierre, duracion_minima_periodo, descanso_minimo)
+        self._validar_parametros(hora_apertura, hora_cierre, duracion_minima_periodo, descanso_minimo,max_periodos_diarios)
         # Asignamos atributos validados
         self._hora_apertura = hora_apertura
         self._hora_cierre = hora_cierre
         self._duracion_minima_periodo = duracion_minima_periodo
         self._descanso_minimo = descanso_minimo
+        self._periodos_diarios = max_periodos_diarios
 
 
     def _validar_horario_operativo(self, horario: Horario) -> bool:
@@ -28,6 +29,10 @@ class Sucursal:
             if not lista_periodos:
                 continue
 
+            if len(lista_periodos) > self.periodos_diarios:
+                raise ValueError(f"El numero de periodos del dia {dia.name} excede"
+                                f"al numero de periodos ('{self.periodos_diarios}') maximo definidos en {self.nombre}")
+            
             # 1. Validar apertura, cierre y duración mínima de cada período
             for periodo in lista_periodos:
                 if periodo.hora_inicio < self.hora_apertura:
@@ -65,12 +70,7 @@ class Sucursal:
             )
 
             if descanso < self._descanso_minimo:
-                print(
-                    f"El descanso mínimo requerido es {self._descanso_minimo}, "
-                    f"pero el descanso actual es de {descanso}."
-                )
-                return False
-
+                return False  # Se encontró un descanso inválido, corta y retorna False
         return True
 
     def _duracion_entre_periodos(self, p1, p2) -> timedelta:
@@ -110,17 +110,22 @@ class Sucursal:
     @property
     def descanso_minimo(self) -> timedelta:
         return self._descanso_minimo
+
+    @property
+    def periodos_diarios(self) -> int:
+        return self._periodos_diarios
     
     # --- VALIDAR PARAMETROS --- 
 
-    def _validar_parametros(self, apertura: time, cierre: time, duracion_minima: timedelta, descanso_minimo: timedelta):
+    def _validar_parametros(self, apertura: time, cierre: time, duracion_minima: timedelta, descanso_minimo: timedelta, periodos_diarios: int):
 
         #creamos las validaciones
         validaciones = [
             (apertura,time,f"Hora de apertura de la sucursal {self.nombre}"),
             (cierre,time,f"Hora de cierre de la sucursal {self.nombre}"),
             (duracion_minima, timedelta, f"Duracion minima de cada periodo en la sucursal {self.nombre}"),
-            (descanso_minimo, timedelta, f"Duracion minima del descanso entre cada periodo en la sucursal {self.nombre}")
+            (descanso_minimo, timedelta, f"Duracion minima del descanso entre cada periodo en la sucursal {self.nombre}"),
+            (periodos_diarios, int, f"EL maximo numero de periodos por cada dia en el horario de la sucursal {self.nombre}")
         ]
 
         #recorreomos las validaciones
@@ -134,4 +139,7 @@ class Sucursal:
 
         if apertura >= cierre:
             raise ValueError("La hora de apertura de la sucursal debe der extricamente menor a la de cierre")
+
+        if periodos_diarios <= 0:
+            raise ValueError("El numero maximo de periodos diarios debe ser un valor positivo y mayor a cero")
 

@@ -18,6 +18,7 @@ def probar_sucursal():
         hora_cierre=time(20, 0),
         duracion_minima_periodo=timedelta(hours=1),
         descanso_minimo=timedelta(minutes=30),
+        max_periodos_diarios = int(3)
     )
 
     print(f"Sucursal creada: {sucursal_centro.nombre}")
@@ -72,6 +73,27 @@ def probar_sucursal():
         print("❌ Prueba 3 FALLÓ: No se detectó la falta de descanso suficiente.\n")
     except ValueError as e:
         print(f"✅ Prueba 3 SUPERADA (Error capturado correctamente):\n   --> {e}\n")
+
+    # -------------------------------------------------------------
+    # CASO 4: Error por mumero de periodos maximos en un dia excedido
+    # -------------------------------------------------------------
+    print("--- Prueba 4: Maximo de periodos diarios ---")
+    h_invalido_max_periodos = Horario()
+    p_uno =  PeriodoHorario(time(8, 0), time(12, 0))
+    p_dos =  PeriodoHorario(time(14, 0), time(15, 0))
+    p_tres = PeriodoHorario(time(16,0), time(17,0))
+    p_cuatro = PeriodoHorario(time(17,0), time(18,0))
+
+    h_invalido_max_periodos.agregar_periodo(DiasSemana.JUEVES, p_uno)
+    h_invalido_max_periodos.agregar_periodo(DiasSemana.JUEVES, p_dos)
+    h_invalido_max_periodos.agregar_periodo(DiasSemana.JUEVES, p_tres)
+    h_invalido_max_periodos.agregar_periodo(DiasSemana.JUEVES, p_cuatro)
+
+    try:
+        sucursal_centro._validar_horario_operativo(h_invalido_max_periodos)
+        print("❌ Prueba 4 FALLÓ: Ningun horario exedio el max de periodos diarios.\n")
+    except ValueError as e:
+        print(f"✅ Prueba 4 SUPERADA (Error capturado correctamente):\n   --> {e}\n")
 
 
 if __name__ == "__main__":
