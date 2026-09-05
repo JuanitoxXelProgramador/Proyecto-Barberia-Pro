@@ -2,6 +2,7 @@ from datetime import time,timedelta,datetime,date
 from modelos.horario import Horario
 from modelos.dias_semana import DiasSemana
 from modelos.periodo_horario import PeriodoHorario
+from modelos.barbero import Barbero
 
 class Sucursal:
 
@@ -11,15 +12,63 @@ class Sucursal:
         self._direccion = direccion
         self._telefono = telefono
         #validamos parametros
-        self._validar_parametros(hora_apertura, hora_cierre, duracion_minima_periodo, descanso_minimo,max_periodos_diarios)
+        self._validar_parametros(nombre,hora_apertura, hora_cierre, duracion_minima_periodo, descanso_minimo,max_periodos_diarios)
         # Asignamos atributos validados
         self._hora_apertura = hora_apertura
         self._hora_cierre = hora_cierre
         self._duracion_minima_periodo = duracion_minima_periodo
         self._descanso_minimo = descanso_minimo
         self._periodos_diarios = max_periodos_diarios
+        #almacenador de objetos barberos
+        self._barberos = []
 
+    def agregar_barbero(self,barbero: Barbero):
+        if not isinstance(barbero,Barbero):
+            raise TypeError("El parámetro debe ser un objeto de tipo Barbero.")
 
+        if barbero in self._barberos:
+            raise ValueError("El objeto tipo barbero ya esta agregado")
+
+        if any(b.documento == barbero.documento for b in self._barberos):
+            raise ValueError(f"Ya existe un barbero registrado con la cédula {barbero.documento}.")
+
+        #en caso que este todo bien
+        self._barberos.append(barbero)
+
+    def buscar_barbero(self,id: int) -> Barbero:
+        #comprovamos si existen barberos
+        self.existen_barberos()
+
+        for barbero in self._barberos: 
+            if barbero.id == id:
+                return barbero
+
+        raise ValueError(f"El id barbero {id} no existe dentro de Sucursal {self.nombre}")
+
+    def existen_barberos(self):
+        if not self._barberos:
+            raise ValueError(f"No hay barberos regitrados en la Sucursal {self.nombre}")
+    
+    def eliminar_barbero(self,id: int) -> Barbero: 
+        #en caso de que ixista el barbero lo alamcenamos en otro caso pues tira el raise
+        barbero = self.buscar_barbero(id)
+        #eliminamos barbero
+        self._barberos.remove(barbero)
+        
+    def listar_barberos(self) -> str:
+        """Retorna una representación formateada en texto de los barberos asignados a la sucursal."""
+        if not self._barberos:
+            return f"La sucursal '{self.nombre}' no tiene barberos asignados."
+
+        lineas = [f"Barberos asignados a la sucursal '{self.nombre}':"]
+        for barbero in self._barberos:
+            lineas.append(
+                f"  - [ID: {barbero.id}] {barbero.nombre} {barbero.apellido} "
+                f"| Doc: {barbero.documento} "
+                f"| Estado: {barbero.estado.name}"
+            )
+
+        return "\n".join(lineas)
     def _validar_horario_operativo(self, horario: Horario) -> bool:
         """Valida que todos los períodos de un horario respeten la apertura,
 
@@ -80,8 +129,6 @@ class Sucursal:
         dt2 = datetime.combine(fecha_base, p2.hora_inicio)
         return dt2 - dt1
 
-    
-
 # --- PROPERTIES Y GETTERS ---
     @property
     def nombre(self) -> str:
@@ -117,25 +164,24 @@ class Sucursal:
     
     # --- VALIDAR PARAMETROS --- 
 
-    def _validar_parametros(self, apertura: time, cierre: time, duracion_minima: timedelta, descanso_minimo: timedelta, periodos_diarios: int):
+    def _validar_parametros(self, nombre, apertura: time, cierre: time, duracion_minima: timedelta, descanso_minimo: timedelta, periodos_diarios: int):
 
         #creamos las validaciones
         validaciones = [
-            (apertura,time,f"Hora de apertura de la sucursal {self.nombre}"),
-            (cierre,time,f"Hora de cierre de la sucursal {self.nombre}"),
-            (duracion_minima, timedelta, f"Duracion minima de cada periodo en la sucursal {self.nombre}"),
-            (descanso_minimo, timedelta, f"Duracion minima del descanso entre cada periodo en la sucursal {self.nombre}"),
-            (periodos_diarios, int, f"EL maximo numero de periodos por cada dia en el horario de la sucursal {self.nombre}")
+            (apertura,time,f"Hora de apertura de la sucursal {nombre}"),
+            (cierre,time,f"Hora de cierre de la sucursal {nombre}"),
+            (duracion_minima, timedelta, f"Duracion minima de cada periodo en la sucursal {nombre}"),
+            (descanso_minimo, timedelta, f"Duracion minima del descanso entre cada periodo en la sucursal {nombre}"),
+            (periodos_diarios, int, f"EL maximo numero de periodos por cada dia en el horario de la sucursal {nombre}")
         ]
 
         #recorreomos las validaciones
-        for parametro, instancia, nombre in validaciones:
+        for parametro, instancia, etiqueta in validaciones:
             if parametro is None:
-                raise ValueError(f"EL parametro {nombre} no puede estar vacio")
+                raise ValueError(f"EL parametro {etiqueta} no puede estar vacio")
 
             if not isinstance(parametro,instancia):
-                raise TypeError(f"El parámetro '{nombre}' debe ser de tipo {instancia.__name__}.")
-
+                raise TypeError(f"El parámetro '{etiqueta}' debe ser de tipo {instancia.__name__}.")
 
         if apertura >= cierre:
             raise ValueError("La hora de apertura de la sucursal debe der extricamente menor a la de cierre")

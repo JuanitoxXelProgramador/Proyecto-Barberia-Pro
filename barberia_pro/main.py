@@ -1,99 +1,119 @@
-from datetime import time, timedelta
+from datetime import time, timedelta, date
 from modelos.dias_semana import DiasSemana
 from modelos.periodo_horario import PeriodoHorario
 from modelos.horario import Horario
 from modelos.sucursal import Sucursal
-
+from modelos.barbero import Barbero
+from modelos.estado_barbero import EstadoBarbero
+from modelos.vigencia import Vigencia
 
 def probar_sucursal():
-    print("=== INICIANDO PRUEBAS DE SUCURSAL Y HORARIOS ===\n")
+    # print("=== INICIANDO PRUEBAS DE SUCURSAL Y HORARIOS ===\n")
 
-    # 1. Crear la sucursal (Apertura: 8:00 AM, Cierre: 8:00 PM)
-    # Min. por período: 1 hora, Min. descanso: 30 minutos
-    sucursal_centro = Sucursal(
-        nombre="Sucursal Centro",
-        direccion="Calle 5 # 4-12",
-        telefono="3001234567",
-        hora_apertura=time(8, 0),
-        hora_cierre=time(20, 0),
-        duracion_minima_periodo=timedelta(hours=1),
-        descanso_minimo=timedelta(minutes=30),
-        max_periodos_diarios = int(3)
-    )
+    # # 1. Crear la sucursal (Apertura: 8:00 AM, Cierre: 8:00 PM)
+    # # Min. por período: 1 hora, Min. descanso: 30 minutos
+    # sucursal_centro = Sucursal(
+    #     nombre="Sucursal Centro",
+    #     direccion="Calle 5 # 4-12",
+    #     telefono="3001234567",
+    #     hora_apertura=time(8, 0),
+    #     hora_cierre=time(20, 0),
+    #     duracion_minima_periodo=timedelta(hours=1),
+    #     descanso_minimo=timedelta(minutes=30),
+    #     max_periodos_diarios = int(3)
+    # )
 
-    print(f"Sucursal creada: {sucursal_centro.nombre}")
-    print(f"Horario de atención: {sucursal_centro.hora_apertura} - {sucursal_centro.hora_cierre}")
-    print(f"Descanso mínimo requerido: {sucursal_centro.descanso_minimo}\n")
+    # print(f"Sucursal creada: {sucursal_centro.nombre}")
+    # print(f"Horario de atención: {sucursal_centro.hora_apertura} - {sucursal_centro.hora_cierre}")
+    # print(f"Descanso mínimo requerido: {sucursal_centro.descanso_minimo}\n")
 
-    # -------------------------------------------------------------
-    # CASO 1: Horario totalmente válido
-    # -------------------------------------------------------------
-    print("--- Prueba 1: Horario Válido ---")
-    h_valido = Horario()
-    p1 = PeriodoHorario(time(8, 0), time(12, 0))   # Mañana (4 hrs)
-    p2 = PeriodoHorario(time(13, 0), time(18, 0))  # Tarde (5 hrs) - Descanso de 1 hora (12:00 a 13:00)
+    # # -------------------------------------------------------------
+    # # CASO 1: Horario totalmente válido
+    # # -------------------------------------------------------------
+    # print("--- Prueba 1: Horario Válido ---")
+    # h_valido = Horario()
+    # p1 = PeriodoHorario(time(8, 0), time(12, 0))   # Mañana (4 hrs)
+    # p2 = PeriodoHorario(time(13, 0), time(18, 0))  # Tarde (5 hrs) - Descanso de 1 hora (12:00 a 13:00)
 
-    h_valido.agregar_periodo(DiasSemana.LUNES, p1)
-    h_valido.agregar_periodo(DiasSemana.LUNES, p2)
+    # h_valido.agregar_periodo(DiasSemana.LUNES, p1)
+    # h_valido.agregar_periodo(DiasSemana.LUNES, p2)
 
+    # try:
+    #     if sucursal_centro._validar_horario_operativo(h_valido):
+    #         print("✅ Prueba 1 SUPERADA: El horario cumple con todas las reglas operativas.\n")
+    # except ValueError as e:
+    #     print(f"❌ Prueba 1 FALLÓ: {e}\n")
+
+    # # -------------------------------------------------------------
+    # # CASO 2: Error por exceder el horario de cierre de la sucursal
+    # # -------------------------------------------------------------
+    # print("--- Prueba 2: Período Fuera de Límites ---")
+    # h_invalido_limite = Horario()
+    # p_tardio = PeriodoHorario(time(15, 0), time(21, 0)) # Cierra a las 21:00 (Sucursal cierra a las 20:00)
+
+    # h_invalido_limite.agregar_periodo(DiasSemana.MARTES, p_tardio)
+
+    # try:
+    #     sucursal_centro._validar_horario_operativo(h_invalido_limite)
+    #     print("❌ Prueba 2 FALLÓ: No se detectó que el período excede el horario de cierre.\n")
+    # except ValueError as e:
+    #     print(f"✅ Prueba 2 SUPERADA (Error capturado correctamente):\n   --> {e}\n")
+
+    # # -------------------------------------------------------------
+    # # CASO 3: Error por descanso insuficiente entre turnos
+    # # -------------------------------------------------------------
+    # print("--- Prueba 3: Descanso Insuficiente ---")
+    # h_invalido_descanso = Horario()
+    # p_manana = PeriodoHorario(time(8, 0), time(12, 0))
+    # p_corto = PeriodoHorario(time(12, 15), time(16, 0)) # Descanso de solo 15 min (Mínimo es 30 min)
+
+    # h_invalido_descanso.agregar_periodo(DiasSemana.MIERCOLES, p_manana)
+    # h_invalido_descanso.agregar_periodo(DiasSemana.MIERCOLES, p_corto)
+
+    # try:
+    #     sucursal_centro._validar_horario_operativo(h_invalido_descanso)
+    #     print("❌ Prueba 3 FALLÓ: No se detectó la falta de descanso suficiente.\n")
+    # except ValueError as e:
+    #     print(f"✅ Prueba 3 SUPERADA (Error capturado correctamente):\n   --> {e}\n")
+
+    # # -------------------------------------------------------------
+    # # CASO 4: Error por mumero de periodos maximos en un dia excedido
+    # # -------------------------------------------------------------
+    # print("--- Prueba 4: Maximo de periodos diarios ---")
+    # h_invalido_max_periodos = Horario()
+    # p_uno =  PeriodoHorario(time(8, 0), time(12, 0))
+    # p_dos =  PeriodoHorario(time(14, 0), time(15, 0))
+    # p_tres = PeriodoHorario(time(16,0), time(17,0))
+    # p_cuatro = PeriodoHorario(time(17,0), time(18,0))
+
+    # h_invalido_max_periodos.agregar_periodo(DiasSemana.JUEVES, p_uno)
+    # h_invalido_max_periodos.agregar_periodo(DiasSemana.JUEVES, p_dos)
+    # h_invalido_max_periodos.agregar_periodo(DiasSemana.JUEVES, p_tres)
+    # h_invalido_max_periodos.agregar_periodo(DiasSemana.JUEVES, p_cuatro)
+
+    # try:
+    #     sucursal_centro._validar_horario_operativo(h_invalido_max_periodos)
+    #     print("❌ Prueba 4 FALLÓ: Ningun horario exedio el max de periodos diarios.\n")
+    # except ValueError as e:
+    #     print(f"✅ Prueba 4 SUPERADA (Error capturado correctamente):\n   --> {e}\n")
+
+    # print("\n====================Pruebas barbero")
+    # b1 = Barbero("Juanito","Gonzales","1087026575","3188775972","juanitoelprogrador117@gmailcom",EstadoBarbero.ACTIVO)
+    # if b1._validar_correo():
+    #     print("El correo es valido")
+    # else: print("EL correo no es valido")
+
+    print("=== INICIANDO PRUEBAS HORARIOS Y VIGENCIA ===\n")
+    inicio = date(2026,4,9)
+    fin = date(2026,4,8)
+    vi = Vigencia(inicio,fin)
     try:
-        if sucursal_centro._validar_horario_operativo(h_valido):
-            print("✅ Prueba 1 SUPERADA: El horario cumple con todas las reglas operativas.\n")
+        print(vi.duracion_total())
+        print(vi.dias_restantes())
+        print("❌ Prueba Fallo: la duracion es correcta.\n")
     except ValueError as e:
-        print(f"❌ Prueba 1 FALLÓ: {e}\n")
+        print("Prueba 4 SUPERADA (Error capturado correctamente):\n   --> {e}\n")
 
-    # -------------------------------------------------------------
-    # CASO 2: Error por exceder el horario de cierre de la sucursal
-    # -------------------------------------------------------------
-    print("--- Prueba 2: Período Fuera de Límites ---")
-    h_invalido_limite = Horario()
-    p_tardio = PeriodoHorario(time(15, 0), time(21, 0)) # Cierra a las 21:00 (Sucursal cierra a las 20:00)
-
-    h_invalido_limite.agregar_periodo(DiasSemana.MARTES, p_tardio)
-
-    try:
-        sucursal_centro._validar_horario_operativo(h_invalido_limite)
-        print("❌ Prueba 2 FALLÓ: No se detectó que el período excede el horario de cierre.\n")
-    except ValueError as e:
-        print(f"✅ Prueba 2 SUPERADA (Error capturado correctamente):\n   --> {e}\n")
-
-    # -------------------------------------------------------------
-    # CASO 3: Error por descanso insuficiente entre turnos
-    # -------------------------------------------------------------
-    print("--- Prueba 3: Descanso Insuficiente ---")
-    h_invalido_descanso = Horario()
-    p_manana = PeriodoHorario(time(8, 0), time(12, 0))
-    p_corto = PeriodoHorario(time(12, 15), time(16, 0)) # Descanso de solo 15 min (Mínimo es 30 min)
-
-    h_invalido_descanso.agregar_periodo(DiasSemana.MIERCOLES, p_manana)
-    h_invalido_descanso.agregar_periodo(DiasSemana.MIERCOLES, p_corto)
-
-    try:
-        sucursal_centro._validar_horario_operativo(h_invalido_descanso)
-        print("❌ Prueba 3 FALLÓ: No se detectó la falta de descanso suficiente.\n")
-    except ValueError as e:
-        print(f"✅ Prueba 3 SUPERADA (Error capturado correctamente):\n   --> {e}\n")
-
-    # -------------------------------------------------------------
-    # CASO 4: Error por mumero de periodos maximos en un dia excedido
-    # -------------------------------------------------------------
-    print("--- Prueba 4: Maximo de periodos diarios ---")
-    h_invalido_max_periodos = Horario()
-    p_uno =  PeriodoHorario(time(8, 0), time(12, 0))
-    p_dos =  PeriodoHorario(time(14, 0), time(15, 0))
-    p_tres = PeriodoHorario(time(16,0), time(17,0))
-    p_cuatro = PeriodoHorario(time(17,0), time(18,0))
-
-    h_invalido_max_periodos.agregar_periodo(DiasSemana.JUEVES, p_uno)
-    h_invalido_max_periodos.agregar_periodo(DiasSemana.JUEVES, p_dos)
-    h_invalido_max_periodos.agregar_periodo(DiasSemana.JUEVES, p_tres)
-    h_invalido_max_periodos.agregar_periodo(DiasSemana.JUEVES, p_cuatro)
-
-    try:
-        sucursal_centro._validar_horario_operativo(h_invalido_max_periodos)
-        print("❌ Prueba 4 FALLÓ: Ningun horario exedio el max de periodos diarios.\n")
-    except ValueError as e:
-        print(f"✅ Prueba 4 SUPERADA (Error capturado correctamente):\n   --> {e}\n")
 
 
 if __name__ == "__main__":
