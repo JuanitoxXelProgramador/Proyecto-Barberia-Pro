@@ -1,8 +1,7 @@
-from datetime import time,timedelta,datetime,date
+from datetime import time,timedelta,datetime
 from modelos.horario import Horario
-from modelos.dias_semana import DiasSemana
-from modelos.periodo_horario import PeriodoHorario
 from modelos.barbero import Barbero
+from modelos.asignacion_barbero import AsignacionBarbero
 
 class Sucursal:
 
@@ -19,23 +18,67 @@ class Sucursal:
         self._duracion_minima_periodo = duracion_minima_periodo
         self._descanso_minimo = descanso_minimo
         self._periodos_diarios = max_periodos_diarios
-        #almacenador de objetos barberos
-        self._barberos = []
+        #almacenador de objetos barberos cambiarlo por lista de asignaciones
+        self._asignaciones: list[AsignacionBarbero] = []
 
-    def agregar_barbero(self,barbero: Barbero):
-        if not isinstance(barbero,Barbero):
-            raise TypeError("El parámetro debe ser un objeto de tipo Barbero.")
 
-        if barbero in self._barberos:
-            raise ValueError("El objeto tipo barbero ya esta agregado")
+    def vincular_asignacion(self,asignacion: AsignacionBarbero) -> None:
+        if not isinstance(asignacion,AsignacionBarbero):
+            raise TypeError("El parámetro debe ser un objeto de tipo AsignacionBarbero.")
 
-        if any(b.documento == barbero.documento for b in self._barberos):
-            raise ValueError(f"Ya existe un barbero registrado con la cédula {barbero.documento}.")
+        if asignacion.sucursal != self:
+            raise ValueError(f"EL barbero {asignacion.barbero.nombre} no esta asignado a esta sucursal {self.nombre}")
 
-        #en caso que este todo bien
-        self._barberos.append(barbero)
+        #validamos el horario con nuestro metodo (ya validamos en GestorAsignaciones)
+        # if not self.validar_horario_operativo(asignacion.horario):
+        #     raise ValueError(f"El horario operativo asignado a {asignacion.barbero.nombre}" 
+        #                      f"no cumple con las reglas establecidas por la sucursal {self.nombre}")
 
-    def buscar_barbero(self,id: int) -> Barbero:
+        self._asignaciones.append(asignacion)
+
+
+    # Devolvera una lista con las asignaciones historicas
+    def obtener_historico_asignaciones_por_barbero(self, id_barbero: int) -> list[AsignacionBarbero]:
+        if not isinstance(id_barbero,int):
+            raise TypeError("La id del barbero que desea buscar no es del tipo correcto (int)")
+
+        if id_barbero <= 0:
+            raise ValueError("La id del barbero que esta buscando no es valida")
+
+        lista: list[AsignacionBarbero] = []
+        #navegando en las lista de asignaciones
+        for asignacion in self._asignaciones:
+            if asignacion.barbero.id == id_barbero:
+                lista.append(asignacion)
+
+        if not lista:
+            raise ValueError(f"No se encontro ninguna asignacion historica para el id {id_barbero}.")
+        
+        return lista
+
+    # Devuelve la asignación (el contrato solo el primero e unico que este activo)
+    def buscar_asignacion_activa_por_barbero(self, id_barbero: int) -> AsignacionBarbero:
+        if not isinstance(id_barbero,int):
+            raise TypeError("La id del barbero que desea buscar no es del tipo correcto (int)")
+
+        if id_barbero <= 0:
+            raise ValueError("La id del barbero que esta buscando no es valida")
+
+        #navegando en las lista de asignaciones
+        for asignacion in self._asignaciones:
+            if asignacion.barbero.id == id_barbero:
+                #comprobamos que este vigente
+                if asignacion.esta_activa():
+                    return asignacion
+
+        raise ValueError(f"No se encontro la asignacion de barbero para el id en cuestion {id_barbero}")
+
+    # 2. Devuelve solo al Barbero navegando a través de la asignación
+    def buscar_barbero(self, id_barbero: int) -> Barbero:
+        asignacion = self.buscar_asignacion_por_barbero(id_barbero)
+        return asignacion.barbero
+
+    def buscar_asignacion(self,id: int) -> Barbero:
         #comprovamos si existen barberos
         self.existen_barberos()
 
@@ -69,9 +112,9 @@ class Sucursal:
             )
 
         return "\n".join(lineas)
-    def _validar_horario_operativo(self, horario: Horario) -> bool:
+    
+    def validar_horario_operativo(self, horario: Horario) -> bool:
         """Valida que todos los períodos de un horario respeten la apertura,
-
         cierre y tiempos de descanso de la sucursal.
         """
         for dia, lista_periodos in horario.periodos.items():

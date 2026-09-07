@@ -1,5 +1,7 @@
 from modelos.estado_barbero import EstadoBarbero
 from modelos.servicio import Servicio
+from modelos.asignacion_barbero import AsignacionBarbero
+from modelos.vigencia import Vigencia
 
 class Barbero:
     contador_id = 1  # Iniciamos en 1 para IDs más naturales
@@ -18,10 +20,32 @@ class Barbero:
         self._correo = correo.strip().lower()
         self._estado = estado
         self._servicios = []
+        self._asignaciones = []
 
         # 3. Asignación de ID auto-incremental
         self._id = Barbero.contador_id
         Barbero.contador_id += 1
+
+    #FUncion para validar el solapamiento en barbero y gestor asignaciones
+    def validar_solapamiento_vigencia(self,vigencia: Vigencia) -> None:
+        if not isinstance(vigencia,Vigencia):
+            raise TypeError(f"El parámetro debe ser un objeto de tipo Vigencia")
+
+        for asignacion in self._asignaciones:
+            if vigencia.se_solapa_con(asignacion.vigencia):
+                raise ValueError("Se solapa con otra vigencia de asignacion")
+            
+    #agregamos la asignacion
+    def agregar_asignacion(self,otra_asignacion: AsignacionBarbero):
+        #validando tipo de asignacion barbero
+        if not isinstance(otra_asignacion, AsignacionBarbero):
+            raise TypeError("El parámetro debe ser de tipo AsignacionBarbero.")
+        
+        # Pasamos únicamente la nueva vigencia al método de validación
+        self.validar_solapamiento_vigencia(otra_asignacion.vigencia)
+        self._asignaciones.append(otra_asignacion)
+
+
 
     def puede_realizar_servicio(self, servicio: Servicio) -> bool:
         # 1. Validar que sea un Servicio

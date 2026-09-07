@@ -11,6 +11,16 @@ class Vigencia:
         self._fecha_inicio = fecha_inicio
         self._fecha_final = fecha_final
 
+    #validando solapamiento con otra vigencia
+    def se_solapa_con(self, otra: Vigencia) -> bool:
+        #comprobar que sea la instancia
+        if not isinstance(otra,Vigencia):
+            raise TypeError("El parametro no es una instancai de tipo Vigencia")
+
+        #validar solapamiento
+        return (otra.fecha_inicio <= self.fecha_final and otra.fecha_final >= self.fecha_inicio)
+
+
     def esta_vigente_en(self, fecha: date | None = None) -> bool:
         """Comprueba si la vigencia aplica para una fecha dada (por defecto hoy)."""
         fecha_evaluar = fecha or date.today()
@@ -19,7 +29,7 @@ class Vigencia:
     def dias_restantes(self) -> int:
         """Retorna los días que le quedan a la vigencia desde hoy."""
         if not self.esta_vigente_en():
-                raise ValueError("La asignación no se encuentra vigente el día de hoy.")
+            raise ValueError("La asignación no se encuentra vigente el día de hoy.")
         return (self.fecha_final - date.today()).days + 1
 
     def duracion_total(self) -> timedelta:
