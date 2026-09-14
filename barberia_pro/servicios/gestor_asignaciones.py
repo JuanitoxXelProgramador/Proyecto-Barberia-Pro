@@ -21,7 +21,32 @@ class GestorAsignaciones:
         #se asigna en barbero
         # se asigna en sucursal
 
-    def crear_asignacion(self,barbero: Barbero,sucursal: Sucursal,horario: Horario,vigencia: Vigencia):
+    def cancelar_asignacion_activa(self, sucursal: Sucursal, id_barbero: int) -> AsignacionBarbero:
+        # === 1. FASE DE VALIDACIÓN Y BÚSQUEDA (Sin mutar estado) ===
+        if not isinstance(sucursal, Sucursal):
+            raise TypeError("El parámetro 'sucursal' debe ser una instancia de Sucursal.")
+
+        # Validamos que exista el barbero y que tenga una asignación activa en la sucursal
+        # (Si no existe o el ID es inválido, lanzarás la excepción aquí antes de modificar nada)
+        barbero = sucursal.buscar_barbero(id_barbero)
+        asignacion_activa = sucursal.buscar_asignacion_activa_por_barbero(id_barbero)
+
+        # Validamos que la asignación esté realmente en la lista del barbero
+        if asignacion_activa not in barbero.asignaciones:
+            raise ValueError(
+                f"Error de inconsistencia: La asignación activa no se encuentra en el historial del barbero {barbero.nombre}."
+            )
+
+        # === 2. FASE DE EJECUCIÓN COORDINA (Mutación atómica) ===
+        # Una vez todo está verificado a salvo, procedemos a desvincular en ambos lados:
+        sucursal.eliminar_asignacion_activa_por_barbero(id_barbero)
+        barbero.remover_asignacion(asignacion_activa)
+
+        print(f"✔️ Asignación de {barbero.nombre} desvinculada exitosamente de {sucursal.nombre}.")
+        
+        return asignacion_activa
+
+    def crear_asignacion(self,barbero: Barbero,sucursal: Sucursal,horario: Horario,vigencia: Vigencia) -> AsignacionBarbero:
         #primero validamos los parametros recibidos
         self._validar_parametros_asignacion(barbero,sucursal,horario,vigencia)
         #validaciones sin modificar el estado
@@ -33,6 +58,8 @@ class GestorAsignaciones:
         asignacion = AsignacionBarbero(barbero,sucursal,horario,vigencia)
         barbero.agregar_asignacion(asignacion)
         sucursal.vincular_asignacion(asignacion)
+
+        return asignacion
         
     def _validar_parametros_asignacion(self,barbero: Barbero,sucursal: Sucursal,horario: Horario,vigencia: Vigencia) -> None:
         """Valida que ningún parámetro de entrada sea nulo y que pertenezcan

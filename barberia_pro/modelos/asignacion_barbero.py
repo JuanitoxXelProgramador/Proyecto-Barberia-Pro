@@ -1,12 +1,17 @@
-from datetime import time,timedelta,datetime,date
+from datetime import time, timedelta, datetime, date
+from typing import TYPE_CHECKING
 from modelos.horario import Horario
 from modelos.vigencia import Vigencia
-from modelos.sucursal import Sucursal
-from modelos.barbero import Barbero
+
+# Evitamos la importación circular en tiempo de ejecución
+if TYPE_CHECKING:
+    from modelos.sucursal import Sucursal
+    from modelos.barbero import Barbero
+
 class AsignacionBarbero:
 
-    def __init__(self,barbero: Barbero,sucursal: Sucursal, horario: Horario, vigencia: Vigencia):
-        self._validar_parametros(barbero, sucursal,horario,vigencia)
+    def __init__(self, barbero: "Barbero", sucursal: "Sucursal", horario: Horario, vigencia: Vigencia):
+        self._validar_parametros(barbero, sucursal, horario, vigencia)
 
         self._barbero = barbero
         self._sucursal = sucursal
@@ -34,13 +39,13 @@ class AsignacionBarbero:
     def vigencia(self):
         return self._vigencia
 
-    def _validar_parametros(self,barbero: Barbero,sucursal: Sucursal, horario: Horario, vigencia: Vigencia):
+    def _validar_parametros(self, barbero, sucursal, horario: Horario, vigencia: Vigencia):
 
-        #creamos las validaciones
+        #creamos las validaciones (usamos nombre de clase para evitar el import circular)
         validaciones = [
-            (barbero, Barbero,f"Barbero al que pertenece la asignacion"),
-            (sucursal,Sucursal,f"Sucursal asignada al barbero "),
-            (horario,Horario,f"Horario asignado al barbero"),
+            (barbero, "Barbero", f"Barbero al que pertenece la asignacion"),
+            (sucursal, "Sucursal", f"Sucursal asignada al barbero "),
+            (horario, Horario, f"Horario asignado al barbero"),
             (vigencia, Vigencia, f"Vigencia asignada al barbero")
         ]
 
@@ -49,5 +54,10 @@ class AsignacionBarbero:
             if parametro is None:
                 raise ValueError(f"EL parametro {etiqueta} no puede estar vacio")
 
-            if not isinstance(parametro,instancia):
-                raise TypeError(f"El parámetro '{etiqueta}' debe ser de tipo {instancia.__name__}.")
+            # Si la validación es por nombre de clase en string
+            if isinstance(instancia, str):
+                if type(parametro).__name__ != instancia:
+                    raise TypeError(f"El parámetro '{etiqueta}' debe ser de tipo {instancia}.")
+            else:
+                if not isinstance(parametro, instancia):
+                    raise TypeError(f"El parámetro '{etiqueta}' debe ser de tipo {instancia.__name__}.")

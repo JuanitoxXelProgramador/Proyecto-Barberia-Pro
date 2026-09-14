@@ -1,17 +1,21 @@
-from datetime import time,timedelta,datetime
+from datetime import time, timedelta, datetime
+from typing import TYPE_CHECKING
 from modelos.horario import Horario
-from modelos.barbero import Barbero
-from modelos.asignacion_barbero import AsignacionBarbero
+
+# Usamos TYPE_CHECKING para mantener las anotaciones de tipo sin romper la ejecucion
+if TYPE_CHECKING:
+    from modelos.barbero import Barbero
+    from modelos.asignacion_barbero import AsignacionBarbero
 
 class Sucursal:
 
-    def __init__(self,nombre: str, direccion: str, telefono: str, hora_apertura: time, hora_cierre: time, duracion_minima_periodo: timedelta, descanso_minimo: timedelta,max_periodos_diarios: int):
+    def __init__(self, nombre: str, direccion: str, telefono: str, hora_apertura: time, hora_cierre: time, duracion_minima_periodo: timedelta, descanso_minimo: timedelta, max_periodos_diarios: int):
         #asignando parametros informativos de la surcursal
         self._nombre = nombre
         self._direccion = direccion
         self._telefono = telefono
         #validamos parametros
-        self._validar_parametros(nombre,hora_apertura, hora_cierre, duracion_minima_periodo, descanso_minimo,max_periodos_diarios)
+        self._validar_parametros(nombre, hora_apertura, hora_cierre, duracion_minima_periodo, descanso_minimo, max_periodos_diarios)
         # Asignamos atributos validados
         self._hora_apertura = hora_apertura
         self._hora_cierre = hora_cierre
@@ -19,11 +23,11 @@ class Sucursal:
         self._descanso_minimo = descanso_minimo
         self._periodos_diarios = max_periodos_diarios
         #almacenador de objetos barberos cambiarlo por lista de asignaciones
-        self._asignaciones: list[AsignacionBarbero] = []
+        self._asignaciones = []
 
 
-    def vincular_asignacion(self,asignacion: AsignacionBarbero) -> None:
-        if not isinstance(asignacion,AsignacionBarbero):
+    def vincular_asignacion(self, asignacion) -> None:
+        if type(asignacion).__name__ != "AsignacionBarbero":
             raise TypeError("El parámetro debe ser un objeto de tipo AsignacionBarbero.")
 
         if asignacion.sucursal != self:
@@ -38,14 +42,14 @@ class Sucursal:
 
 
     # Devolvera una lista con las asignaciones historicas
-    def obtener_historico_asignaciones_por_barbero(self, id_barbero: int) -> list[AsignacionBarbero]:
-        if not isinstance(id_barbero,int):
+    def obtener_historico_asignaciones_por_barbero(self, id_barbero: int):
+        if not isinstance(id_barbero, int):
             raise TypeError("La id del barbero que desea buscar no es del tipo correcto (int)")
 
         if id_barbero <= 0:
             raise ValueError("La id del barbero que esta buscando no es valida")
 
-        lista: list[AsignacionBarbero] = []
+        lista = []
         #navegando en las lista de asignaciones
         for asignacion in self._asignaciones:
             if asignacion.barbero.id == id_barbero:
@@ -57,8 +61,8 @@ class Sucursal:
         return lista
 
     # Devuelve la asignación (el contrato solo el primero e unico que este activo)
-    def buscar_asignacion_activa_por_barbero(self, id_barbero: int) -> AsignacionBarbero:
-        if not isinstance(id_barbero,int):
+    def buscar_asignacion_activa_por_barbero(self, id_barbero: int):
+        if not isinstance(id_barbero, int):
             raise TypeError("La id del barbero que desea buscar no es del tipo correcto (int)")
 
         if id_barbero <= 0:
@@ -74,37 +78,41 @@ class Sucursal:
         raise ValueError(f"No se encontro la asignacion de barbero para el id en cuestion {id_barbero}")
 
     # 2. Devuelve solo al Barbero navegando a través de la asignación
-    def buscar_barbero(self, id_barbero: int) -> Barbero:
+    def buscar_barbero(self, id_barbero: int):
         asignacion = self.buscar_asignacion_por_barbero(id_barbero)
         return asignacion.barbero
 
-    def buscar_asignacion(self,id: int) -> Barbero:
+    def buscar_asignacion_por_barbero(self, id: int):
         #comprovamos si existen barberos
         self.existen_barberos()
 
-        for barbero in self._barberos: 
-            if barbero.id == id:
-                return barbero
+        for asignacion in self._asignaciones: 
+            if asignacion.barbero.id == id:
+                return asignacion
 
         raise ValueError(f"El id barbero {id} no existe dentro de Sucursal {self.nombre}")
 
     def existen_barberos(self):
-        if not self._barberos:
+        if not self._asignaciones:
             raise ValueError(f"No hay barberos regitrados en la Sucursal {self.nombre}")
     
-    def eliminar_barbero(self,id: int) -> Barbero: 
-        #en caso de que ixista el barbero lo alamcenamos en otro caso pues tira el raise
-        barbero = self.buscar_barbero(id)
-        #eliminamos barbero
-        self._barberos.remove(barbero)
+    # Elimina la asignación activa del barbero en esta sucursal y la retorna
+    def eliminar_asignacion_activa_por_barbero(self, id_barbero: int) -> AsignacionBarbero: 
+        # Buscamos la asignación activa (valida la ID y si existe la asignación activa)
+        asignacion = self.buscar_asignacion_activa_por_barbero(id_barbero)
+        
+        # La removemos del almacenador de la sucursal
+        self._asignaciones.remove(asignacion)
+        return asignacion
         
     def listar_barberos(self) -> str:
         """Retorna una representación formateada en texto de los barberos asignados a la sucursal."""
-        if not self._barberos:
+        if not self._asignaciones:
             return f"La sucursal '{self.nombre}' no tiene barberos asignados."
 
         lineas = [f"Barberos asignados a la sucursal '{self.nombre}':"]
-        for barbero in self._barberos:
+        for asignacion in self._asignaciones:
+            barbero = asignacion.barbero
             lineas.append(
                 f"  - [ID: {barbero.id}] {barbero.nombre} {barbero.apellido} "
                 f"| Doc: {barbero.documento} "
@@ -211,8 +219,8 @@ class Sucursal:
 
         #creamos las validaciones
         validaciones = [
-            (apertura,time,f"Hora de apertura de la sucursal {nombre}"),
-            (cierre,time,f"Hora de cierre de la sucursal {nombre}"),
+            (apertura, time, f"Hora de apertura de la sucursal {nombre}"),
+            (cierre, time, f"Hora de cierre de la sucursal {nombre}"),
             (duracion_minima, timedelta, f"Duracion minima de cada periodo en la sucursal {nombre}"),
             (descanso_minimo, timedelta, f"Duracion minima del descanso entre cada periodo en la sucursal {nombre}"),
             (periodos_diarios, int, f"EL maximo numero de periodos por cada dia en el horario de la sucursal {nombre}")
@@ -223,7 +231,7 @@ class Sucursal:
             if parametro is None:
                 raise ValueError(f"EL parametro {etiqueta} no puede estar vacio")
 
-            if not isinstance(parametro,instancia):
+            if not isinstance(parametro, instancia):
                 raise TypeError(f"El parámetro '{etiqueta}' debe ser de tipo {instancia.__name__}.")
 
         if apertura >= cierre:
@@ -231,4 +239,3 @@ class Sucursal:
 
         if periodos_diarios <= 0:
             raise ValueError("El numero maximo de periodos diarios debe ser un valor positivo y mayor a cero")
-

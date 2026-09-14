@@ -1,8 +1,7 @@
 from modelos.estado_barbero import EstadoBarbero
 from modelos.servicio import Servicio
-from modelos.asignacion_barbero import AsignacionBarbero
 from modelos.vigencia import Vigencia
-
+from datetime import date
 class Barbero:
     contador_id = 1  # Iniciamos en 1 para IDs más naturales
 
@@ -25,7 +24,37 @@ class Barbero:
         # 3. Asignación de ID auto-incremental
         self._id = Barbero.contador_id
         Barbero.contador_id += 1
+        
+    # Elimina una asignación específica de la lista interna del barbero
+    def remover_asignacion(self, asignacion) -> None:
+        if type(asignacion).__name__ != "AsignacionBarbero":
+            raise TypeError("El parámetro debe ser un objeto de tipo AsignacionBarbero.")
 
+        if asignacion not in self._asignaciones:
+            raise ValueError(f"La asignación no pertenece al barbero {self.nombre}.")
+
+        self._asignaciones.remove(asignacion)
+
+    def obtener_asignacion_en_fecha(self, fecha: date | None = None) -> "AsignacionBarbero | None":
+        """Busca la asignación activa del barbero para una fecha determinada (por defecto hoy)."""
+        fecha_consulta = fecha or date.today()
+        for asignacion in self._asignaciones:
+            if asignacion.esta_activa(fecha_consulta):
+                return asignacion
+        return None
+
+    def obtener_asignaciones_por_sucursal(self, nombre_sucursal: str) -> list:
+        """Devuelve todas las asignaciones del barbero en una sucursal específica."""
+
+        if not isinstance(nombre_sucursal,str):
+            raise TypeError("Nombre de la sucursal pasado por parametro obligatoria")
+
+        nombre_sucursal = nombre_sucursal.strip()
+        if nombre_sucursal is None or nombre_sucursal == "":
+            raise ValueError(f"EL parametro del nombre de la sucursal no puede estar vacio")
+        
+        return [asig for asig in self._asignaciones if asig.sucursal.nombre == nombre_sucursal]
+    
     #FUncion para validar el solapamiento en barbero y gestor asignaciones
     def validar_solapamiento_vigencia(self,vigencia: Vigencia) -> None:
         if not isinstance(vigencia,Vigencia):
@@ -36,16 +65,14 @@ class Barbero:
                 raise ValueError("Se solapa con otra vigencia de asignacion")
             
     #agregamos la asignacion
-    def agregar_asignacion(self,otra_asignacion: AsignacionBarbero):
-        #validando tipo de asignacion barbero
-        if not isinstance(otra_asignacion, AsignacionBarbero):
+    def agregar_asignacion(self, otra_asignacion):
+        # Opción A: Validación directa por tipo sin necesidad de import global
+        if type(otra_asignacion).__name__ != "AsignacionBarbero":
             raise TypeError("El parámetro debe ser de tipo AsignacionBarbero.")
         
-        # Pasamos únicamente la nueva vigencia al método de validación
+        # Validamos solapamiento y agregamos
         self.validar_solapamiento_vigencia(otra_asignacion.vigencia)
         self._asignaciones.append(otra_asignacion)
-
-
 
     def puede_realizar_servicio(self, servicio: Servicio) -> bool:
         # 1. Validar que sea un Servicio
