@@ -1,6 +1,6 @@
-from modelos.dias_semana import DiasSemana
-from modelos.periodo_horario import PeriodoHorario
-from datetime import time
+from barberia_pro.modelos.dias_semana import DiasSemana
+from barberia_pro.modelos.periodo_horario import PeriodoHorario
+from datetime import time,datetime
 
 class Horario:
 
@@ -10,7 +10,47 @@ class Horario:
     @property
     def periodos(self):
         return self._periodos
+
+    def esta_disponible_en(self, inicio: datetime, fin: datetime) -> bool:
+
+        if not isinstance(inicio, datetime):
+            raise TypeError("El inicio debe ser de tipo datetime.")
+
+        if not isinstance(fin, datetime):
+            raise TypeError("El fin debe ser de tipo datetime.")
+
+        if fin <= inicio:
+            raise ValueError("La fecha y hora final debe ser posterior a la inicial.")
+
+        # Una cita no puede comenzar un día y terminar otro.
+        if inicio.date() != fin.date():
+            return False
+
+        dia = self.obtener_dia_semana(inicio)
+
+        periodos = self.obtener_horario_dia(dia)
+
+        return any(p.contiene_intervalo(inicio.time(),fin.time())for p in periodos)
+
+    @staticmethod
+    def obtener_dia_semana(fecha: datetime) -> DiasSemana:
+        if not isinstance(fecha, datetime):
+            raise TypeError("El parámetro debe ser obligatoriamente una fecha de tipo datetime.")
+
+        return DiasSemana(fecha.isoweekday())
     
+    def obtener_horario_dia(self,dia: DiasSemana) -> list[PeriodoHorario]:
+        if not isinstance(dia, DiasSemana):
+            raise ValueError("El parametro dia debe ser obligatoriamente del tipo DiasSemana")
+        
+        return self._periodos.get(dia, []) # Retorna lista vacía si no hay periodos
+
+    def dia_sin_periodos(self, dia: DiasSemana) -> bool:
+        if not isinstance(dia, DiasSemana):
+            raise TypeError("El parámetro dia debe ser obligatoriamente del tipo DiasSemana.")
+
+        return len(self.obtener_horario_dia(dia)) == 0
+
     def agregar_periodo(self,dia: DiasSemana,periodo: PeriodoHorario):
         #validando los parametros
         self._validar_parametros(dia,periodo)

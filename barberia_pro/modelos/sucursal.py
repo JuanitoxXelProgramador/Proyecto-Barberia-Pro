@@ -22,7 +22,7 @@ class Sucursal:
         self._duracion_minima_periodo = duracion_minima_periodo
         self._descanso_minimo = descanso_minimo
         self._periodos_diarios = max_periodos_diarios
-        #almacenador de objetos barberos cambiarlo por lista de asignaciones
+        #almacenador de objetos ba rberos cambiarlo por lista de asignaciones
         self._asignaciones = []
 
 
@@ -123,7 +123,7 @@ class Sucursal:
     
     def validar_horario_operativo(self, horario: Horario) -> bool:
         """Valida que todos los períodos de un horario respeten la apertura,
-        cierre y tiempos de descanso de la sucursal.
+        cierre y tiempos de descanso  de la sucursal.
         """
         for dia, lista_periodos in horario.periodos.items():
             if not lista_periodos:

@@ -1,11 +1,11 @@
-from modelos.estado_barbero import EstadoBarbero
-from modelos.servicio import Servicio
-from modelos.vigencia import Vigencia
+from barberia_pro.modelos.estado_barbero import EstadoBarbero
+from barberia_pro.modelos.servicio import Servicio
+from barberia_pro.modelos.vigencia import Vigencia
 from datetime import date
 class Barbero:
     contador_id = 1  # Iniciamos en 1 para IDs más naturales
 
-    def __init__(self,nombre: str,apellido: str, documento: str,telefono: str,correo: str,estado: EstadoBarbero = EstadoBarbero.ACTIVO,):
+    def __init__(self,nombre: str,apellido: str, documento: str,telefono: str,correo: str,estado: EstadoBarbero = EstadoBarbero.ACTIVO):
         # 1. Validamos tipos y formatos
         self._validar_parametros(
             nombre, apellido, documento, telefono, correo, estado
@@ -24,7 +24,71 @@ class Barbero:
         # 3. Asignación de ID auto-incremental
         self._id = Barbero.contador_id
         Barbero.contador_id += 1
+
+
+    
+    def puede_realizar_servicio(self, servicio: Servicio) -> bool:
+
+        # 1. Validar que sea un Servicio
+        if not isinstance(servicio, Servicio):
+            raise TypeError("El parámetro debe ser un objeto de tipo Servicio.")
+
+        # 2. Comprobar si está dentro de los servicios del barbero
+        return servicio in self._servicios
+
+    def agregar_servicio(self,servicio: Servicio):
+        if not isinstance(servicio,Servicio):
+            raise TypeError("El parámetro debe ser un objeto de tipo Servicio.")
+
+        if not servicio.estado:
+            raise ValueError(f"El servicio '{servicio.nombre}' está inactivo.")
+
+        if servicio in self._servicios:
+            raise ValueError(f"El servicio '{servicio.nombre}' ya está asignado al barbero {self.nombre}.")
         
+        self._servicios.append(servicio)
+
+    def eliminar_servicio(self, id: int) -> Servicio:
+        if not isinstance(id, int):
+            raise TypeError("El id que busca debe ser de tipo int")
+
+        if id <= 0:
+            raise ValueError("El id no es valido")
+
+        servicio = self.buscar_servicio(id)
+        if servicio:
+            self._servicios.remove(servicio)
+            return servicio
+
+        raise ValueError(f"El servicio con ID {id} no fue encontrado.")
+
+    def buscar_servicio(self, id: int) -> Servicio:
+        if not self.existen_servicios:  # Funciona como @property
+            raise ValueError(
+                f"El barbero {self.nombre} no cuenta con servicios asignados."
+            )
+
+        for servicio in self._servicios:
+            if servicio.id == id:
+                return servicio
+
+        return None  # Si no lo encuentra, retorna None de forma explícita
+    
+    def listar_servicios(self) -> str:
+        """Retorna una representación formateada en texto de los servicios asignados al barbero."""
+        if not self.existen_servicios:
+            return f"El barbero {self.nombre} {self.apellido} no tiene servicios asignados."
+
+        lineas = [f"Servicios de {self.nombre} {self.apellido}:"]
+        for servicio in self._servicios:
+            lineas.append(
+                f"  - [ID: {servicio.id}] {servicio.nombre} "
+                f"| Duración: {servicio.duracion} min "
+                f"| Precio: ${servicio.precio:,.0f}"
+            )
+
+        return "\n".join(lineas)
+    
     # Elimina una asignación específica de la lista interna del barbero
     def remover_asignacion(self, asignacion) -> None:
         if type(asignacion).__name__ != "AsignacionBarbero":
@@ -74,73 +138,6 @@ class Barbero:
         self.validar_solapamiento_vigencia(otra_asignacion.vigencia)
         self._asignaciones.append(otra_asignacion)
 
-    def puede_realizar_servicio(self, servicio: Servicio) -> bool:
-        # 1. Validar que sea un Servicio
-        if not isinstance(servicio,Servicio):
-            raise TypeError("El parámetro debe ser un objeto de tipo Servicio.")
-
-        # 2. Comprobar si está dentro de los servicios del barbero
-        for servicio_asignado in self._servicios:
-            if servicio_asignado in self.servicios:
-                return True
-
-        return False
-
-    def agregar_servicio(self,servicio: Servicio):
-        if not isinstance(servicio,Servicio):
-            raise TypeError("El parámetro debe ser un objeto de tipo Servicio.")
-
-        if not servicio.estado:
-            raise ValueError(f"El servicio '{servicio.nombre}' está inactivo.")
-
-        if servicio in self._servicios:
-            raise ValueError(f"El servicio '{servicio.nombre}' ya está asignado al barbero {self.nombre}.")
-
-        #implementamos el nuevo metodo 'puede_realizar_servicio'
-
-        #agregando el servicio
-        self._servicios.append(servicio)
-
-    def eliminar_servicio(self, id: int) -> Servicio:
-        if not isinstance(id, int):
-            raise TypeError("El id que busca debe ser de tipo int")
-
-        if id <= 0:
-            raise ValueError("El id no es valido")
-
-        servicio = self.buscar_servicio(id)
-        if servicio:
-            self._servicios.remove(servicio)
-            return servicio
-
-        raise ValueError(f"El servicio con ID {id} no fue encontrado.")
-
-    def buscar_servicio(self, id: int) -> Servicio:
-        if not self.existen_servicios:  # Funciona como @property
-            raise ValueError(
-                f"El barbero {self.nombre} no cuenta con servicios asignados."
-            )
-
-        for servicio in self._servicios:
-            if servicio.id == id:
-                return servicio
-
-        return None  # Si no lo encuentra, retorna None de forma explícita
-    
-    def listar_servicios(self) -> str:
-        """Retorna una representación formateada en texto de los servicios asignados al barbero."""
-        if not self.existen_servicios:
-            return f"El barbero {self.nombre} {self.apellido} no tiene servicios asignados."
-
-        lineas = [f"Servicios de {self.nombre} {self.apellido}:"]
-        for servicio in self._servicios:
-            lineas.append(
-                f"  - [ID: {servicio.id}] {servicio.nombre} "
-                f"| Duración: {servicio.duracion} min "
-                f"| Precio: ${servicio.precio:,.0f}"
-            )
-
-        return "\n".join(lineas)
     @property
     def existen_servicios(self) -> bool:
         return len(self._servicios) > 0
@@ -184,6 +181,10 @@ class Barbero:
             raise TypeError("El estado debe ser una instancia de EstadoBarbero.")
         self._estado = nuevo_estado
 
+    @property
+    def esta_activo(self) -> bool:
+        return self._estado == EstadoBarbero.ACTIVO
+    
     def cambiar_estado(self):
         """Alterna el estado del barbero fácilmente."""
         if self._estado == EstadoBarbero.ACTIVO:
