@@ -1,29 +1,20 @@
+import string
+
 class Cliente:
     """
     Representa un cliente registrado en Barbería Pro.
     """ 
-    def __init__(self,nombre, apellido, correo, password, telefono, foto_perfil = None):
-        self._nombre = None 
-        self._apellido = None
-        self._correo = None
-        self._password = None
-        self._telefono = None
-        self._foto_perfil = None
+    def __init__(self,nombre: str, apellido: str, correo: str, password: str, telefono: str, foto_perfil: "str"):
 
-        if nombre.strip() == "" or apellido.strip() == "":
-            raise ValueError("El nombre o apellido son obligatorios")
-
-        if correo.strip() == "" or password.strip() == "":
-            raise ValueError("El correo y la contraseña son obligatorios.")
+        self._validar_parametros(nombre, apellido, correo, password, telefono, foto_perfil)
     
         # 2. ASIGNACIÓN (Solo llegamos aquí si ninguna validación de arriba lanzó un error)
-        self.nombre = nombre
-        self.apellido = apellido
-        self.correo = correo
-        self.password = password
-        self.telefono = telefono
-        self.foto_perfil = foto_perfil
-
+        self._nombre = nombre
+        self._apellido = apellido
+        self._correo = correo
+        self._password = password
+        self._telefono = telefono
+        self._foto_perfil = foto_perfil
 
     #propiedades de cliente
     @property
@@ -68,42 +59,66 @@ class Cliente:
 
     @password.setter
     def password(self, nueva_contraseña):
-        if len(nueva_contraseña.strip()) < 8:
-            raise ValueError("La contraseña debe tener minimo 8 caracteres ")
-
+        self._validar_contrasena(nueva_contraseña)
         self._password = nueva_contraseña
         
 
-    #funciones espeficas
+    # --- Validaciones ---
+    def _validar_parametros(self,nombre: str, apellido: str, correo: str, password: str, telefono: str, foto_perfil: "str"):
+        validaciones = [(nombre,str,"Nombre del cliente"),
+                        (apellido, str,"Apellido del cliente"),
+                        (correo, str,"Correo del cliente"),
+                        (password,str,"Contrasena del cliente"),
+                        (telefono,str,"Telefono del cliete"),
+                        (foto_perfil,str,"Foto de perfil")]
 
-    def _validar_correo(self,email):
+        for parametro,instancia,etiqueta in validaciones:
+            if not parametro:
+                raise ValueError(f"El parametro {etiqueta} no puede estar vacio")
+
+            if not isinstance(parametro,instancia):
+                raise ValueError(f"EL parametro {etiqueta} no es del tipo correcto {instancia.__name__}")
+
+        self._validar_correo(correo)
+        self._validar_contrasena(password)
+
+        
+    def _validar_contrasena(self, password: str):
+        password = password.strip()
+        #validar longitud
+        if len(password) < 8:
+            raise ValueError(f"La contrasena debe contener al menos 8 caracteres")
+        #validar letra mayuscula
+        if not any(letra.isupper() for letra in password):
+            raise ValueError(f"La contrasena debe contener almenos una mayuscula")
+        #validar caracter especial
+        if not any(letra in string.punctuation for letra in password):
+            raise ValueError(f"La contrasena debe contener almenos un caracter especial")
+        #validar numero 
+        if not any(letra.isdigit() for letra in password):
+            raise ValueError(f"La contrasena debe contener almenos un numero")
+
+    def _validar_correo(self,email: str) :
     # 1. Verifica que tenga una sola arroba
         if email.count("@") != 1:
-            return False
+            raise ValueError(f"El correo {email} debe tener solo una arrova")
 
         usuario, dominio = email.split("@")
 
         # 2. Verifica que haya texto antes de la arroba
         if len(usuario) == 0:
-            return False
+            raise ValueError(f"El correo {email} no tiene nombre de email")
 
         # 3. Verifica que haya un punto en el dominio
         if "." not in dominio:
-            return False
+            raise ValueError(f"El correo {email} no tiene un punto en su dominio")
 
         dominio_nombre, extension = dominio.rsplit(".", 1)
 
         # 4. Verifica que el dominio y la extensión tengan texto
         if len(dominio_nombre) == 0 or len(extension) == 0:
-            return False
+            raise ValueError(f"El correo {email} debe tener su dominio y correo con nombre y dominio correcto")
 
-        return True
 
     def __str__(self):
         return f"Nombre: {self.nombre}\nApellido: {self.apellido}\nCorreo: {self.correo}"
-
-# c1 = Cliente("juan","bargas","holasoyjuan@gmail.com", "equisde432", 3188775972)
-# print(c1)
-
-
-

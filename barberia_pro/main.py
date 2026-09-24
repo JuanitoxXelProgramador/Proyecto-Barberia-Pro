@@ -8,6 +8,7 @@ from modelos.vigencia import Vigencia
 from modelos.asignacion_barbero import AsignacionBarbero
 from modelos.estado_barbero import EstadoBarbero
 from modelos.dias_semana import DiasSemana
+from servicios.gestor_citas import GestorCitas as gestor
 
 # def probar_vigencia_y_exclusividad():
 #     print("==========================================================")
@@ -100,3 +101,6 @@ from modelos.dias_semana import DiasSemana
 #         probar_vigencia_y_exclusividad()
 #     except Exception as error:
 #         print(f"\n❌ Error al ejecutar la prueba: {error}")
+
+g1 = gestor()
+print("Hola")

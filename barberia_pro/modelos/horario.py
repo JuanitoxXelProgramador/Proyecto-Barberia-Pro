@@ -1,5 +1,5 @@
-from barberia_pro.modelos.dias_semana import DiasSemana
-from barberia_pro.modelos.periodo_horario import PeriodoHorario
+from modelos.dias_semana import DiasSemana
+from modelos.periodo_horario import PeriodoHorario
 from datetime import time,datetime
 
 class Horario:

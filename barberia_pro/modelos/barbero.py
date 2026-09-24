@@ -1,7 +1,8 @@
-from barberia_pro.modelos.estado_barbero import EstadoBarbero
-from barberia_pro.modelos.servicio import Servicio
-from barberia_pro.modelos.vigencia import Vigencia
+from modelos.estado_barbero import EstadoBarbero
+from modelos.servicio import Servicio
+from modelos.vigencia import Vigencia
 from datetime import date
+
 class Barbero:
     contador_id = 1  # Iniciamos en 1 para IDs más naturales
 
@@ -25,8 +26,6 @@ class Barbero:
         self._id = Barbero.contador_id
         Barbero.contador_id += 1
 
-
-    
     def puede_realizar_servicio(self, servicio: Servicio) -> bool:
 
         # 1. Validar que sea un Servicio
